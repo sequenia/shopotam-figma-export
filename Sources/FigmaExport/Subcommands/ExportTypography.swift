@@ -17,6 +17,9 @@ extension FigmaExportCommand {
         
         @Option(name: .shortAndLong, help: "An input YAML file with figma and platform properties.")
         var input: String
+
+        @Option(name: .shortAndLong, help: "Target progect name")
+        var project: String
         
         func run() throws {
             let logger = Logger(label: "com.redmadrobot.figma-export")
@@ -44,7 +47,7 @@ extension FigmaExportCommand {
 
             if let android = params.android {//
                 logger.info("Processing colors...")
-                let loader = ColorsLoader(figmaClient: client, params: params.figma)
+                let loader = ColorsLoader(figmaClient: client, params: params.figma, project: project)
                 let colors = try loader.load()
 
                 let processor = ColorsProcessor(
@@ -53,7 +56,10 @@ extension FigmaExportCommand {
                     nameReplaceRegexp: params.common?.colors?.nameReplaceRegexp,
                     nameStyle: .snakeCase
                 )
-                let colorPairs = try processor.process(light: colors.light, dark: colors.dark).get()
+                let colorPairs = try processor.process(
+                    baseProject: colors.baseProjectColors,
+                    targetProject: colors.targetProjectColors
+                ).get()
 
                 logger.info("Saving text styles...")
 

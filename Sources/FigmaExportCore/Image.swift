@@ -8,7 +8,7 @@ public struct Image: Asset {
     public var platform: Platform?
     
     public init(name: String, platform: Platform? = nil, url: URL, format: String) {
-        self.name = name
+        self.name = name.transformUnicode()
         self.platform = platform
         self.url = url
         self.format = format

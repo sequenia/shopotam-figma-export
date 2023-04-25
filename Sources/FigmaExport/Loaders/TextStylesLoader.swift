@@ -15,7 +15,9 @@ final class TextStylesLoader {
     }
     
     func load() throws -> [TextStyle] {
-        return try loadTextStyles(fileId: params.lightFileId)
+        guard let fileFontId = params.base.fileFontId else { fatalError("") }
+
+        return try loadTextStyles(fileId: fileFontId)
     }
     
     private func loadTextStyles(fileId: String) throws -> [TextStyle] {

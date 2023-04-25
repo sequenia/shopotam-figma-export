@@ -52,7 +52,7 @@ public struct PaintColor: Decodable {
 
 public struct GradientStop: Decodable {
     public let color: PaintColor
-    public let position: Int
+    public let position: Float
 }
 
 extension Document {

@@ -25,6 +25,9 @@ extension FigmaExportCommand {
         and \"img/onboarding/*\" to export all images from onboarding group
         """)
         var filter: String?
+
+        @Option(name: .shortAndLong, help: "Target progect name")
+        var project: String
         
         func run() throws {
             let logger = Logger(label: "com.redmadrobot.figma-export")
@@ -56,7 +59,7 @@ extension FigmaExportCommand {
             }
 
             logger.info("Fetching images info from Figma. Please wait...")
-            let loader = ImagesLoader(figmaClient: client, params: params, platform: .ios)
+            let loader = ImagesLoader(figmaClient: client, params: params, project: project, platform: .ios)
             let imagesTuple = try loader.loadImages(filter: filter)
 
             logger.info("Processing images...")
@@ -66,7 +69,10 @@ extension FigmaExportCommand {
                 nameReplaceRegexp: params.common?.images?.nameReplaceRegexp,
                 nameStyle: params.ios?.images.nameStyle
             )
-            let images = try processor.process(light: imagesTuple.light, dark: imagesTuple.dark).get()
+            let images = try processor.process(
+                baseProject: imagesTuple.light,
+                targetProject: imagesTuple.dark
+            ).get()
 
             let assetsURL = ios.xcassetsPathImages.appendingPathComponent(ios.images.assetsFolder)
             
@@ -112,7 +118,7 @@ extension FigmaExportCommand {
             }
 
             logger.info("Fetching images info from Figma. Please wait...")
-            let loader = ImagesLoader(figmaClient: client, params: params, platform: .android)
+            let loader = ImagesLoader(figmaClient: client, params: params, project: project, platform: .android)
             let imagesTuple = try loader.loadImages(filter: filter)
 
             logger.info("Processing images...")
@@ -122,7 +128,7 @@ extension FigmaExportCommand {
                 nameReplaceRegexp: params.common?.images?.nameReplaceRegexp,
                 nameStyle: .snakeCase
             )
-            let images = try processor.process(light: imagesTuple.light, dark: imagesTuple.dark).get()
+            let images = try processor.process(baseProject: imagesTuple.light, targetProject: imagesTuple.dark).get()
             
             switch androidImages.format {
             case .svg:

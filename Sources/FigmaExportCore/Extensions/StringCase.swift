@@ -128,4 +128,13 @@ public extension String {
         if self.isSnakeCase { return self }
         return lowercasedStrings().map{ $0.lowercased() }.joined(separator: "_")
     }
+
+    func transformUnicode() -> String {
+        let cfstr = NSMutableString(string: self) as CFMutableString
+        var range = CFRangeMake(0, CFStringGetLength(cfstr))
+        CFStringTransform(cfstr, &range, kCFStringTransformToUnicodeName, Bool(truncating: 0))
+        let newStr = "\(cfstr)"
+
+        return newStr.components(separatedBy: "}").last ?? ""
+    }
 }

@@ -36,7 +36,7 @@ public protocol AssetsProcessable: AssetNameProcessable {
     
     var platform: Platform { get }
     
-    func process(light: [AssetType], dark: [AssetType]?) -> ProcessingPairResult
+    func process(baseProject: [AssetType], targetProject: [AssetType]?) -> ProcessingPairResult
     func process(assets: [AssetType]) -> ProcessingResult
 }
 
@@ -74,15 +74,15 @@ public struct ImagesProcessor: AssetsProcessable {
 
 public extension AssetsProcessable {
 
-    func process(light: [AssetType], dark: [AssetType]?) -> ProcessingPairResult {
-        if let dark = dark {
+    func process(baseProject: [AssetType], targetProject: [AssetType]?) -> ProcessingPairResult {
+        if let targetProject = targetProject {
             return validateAndMakePairs(
-                light: normalizeAssetName(assets: light),
-                dark: normalizeAssetName(assets: dark)
+                baseProject: normalizeAssetName(assets: baseProject),
+                targetProject: normalizeAssetName(assets: targetProject)
             )
         } else {
             return validateAndMakePairs(
-                light: normalizeAssetName(assets: light)
+                light: normalizeAssetName(assets: baseProject)
             )
         }
     }
@@ -172,24 +172,27 @@ public extension AssetsProcessable {
         return .success(pairs)
     }
 
-    private func validateAndMakePairs(light: [AssetType], dark: [AssetType]) -> ProcessingPairResult {
+    private func validateAndMakePairs(
+        baseProject: [AssetType],
+        targetProject: [AssetType]
+    ) -> ProcessingPairResult {
         var errors = ErrorGroup()
 
         // 1. countMismatch
-        if light.count != dark.count {
-            errors.all.append(AssetsValidatorError.countMismatch(light: light.count, dark: dark.count))
+        if baseProject.count != targetProject.count {
+            errors.all.append(AssetsValidatorError.countMismatch(light: baseProject.count, dark: targetProject.count))
         }
 
         // 2. foundDuplicate
-        var lightSet: Set<AssetType> = []
-        light.forEach { asset in
+        var baseProjectSet: Set<AssetType> = []
+        baseProject.forEach { asset in
 
             // badName
             if !isNameValid(asset.name) {
                 errors.all.append(AssetsValidatorError.badName(name: asset.name))
             }
 
-            switch lightSet.insert(asset) {
+            switch baseProjectSet.insert(asset) {
             case (true, _):
                 break // ok
             case (false, let oldMember): // already exists
@@ -197,9 +200,9 @@ public extension AssetsProcessable {
             }
         }
 
-        var darkSet: Set<AssetType> = []
-        dark.forEach { asset in
-            switch darkSet.insert(asset) {
+        var targetProjectSet: Set<AssetType> = []
+        targetProject.forEach { asset in
+            switch targetProjectSet.insert(asset) {
             case (true, _):
                 break // ok
             case (false, let oldMember): // already exists
@@ -209,23 +212,27 @@ public extension AssetsProcessable {
 
         // 3. lightAssetNotFoundInDarkPalette
 
-        let lightElements = lightSet.subtracting(darkSet)
-        if !lightElements.isEmpty {
-            errors.all.append(AssetsValidatorError.lightAssetsNotFoundInDarkPalette(assets: lightElements.map { $0.name }))
+        let baseProjectElements = baseProjectSet.subtracting(targetProjectSet)
+        if !baseProjectElements.isEmpty {
+            errors.all.append(AssetsValidatorError.lightAssetsNotFoundInDarkPalette(assets: baseProjectElements.map { $0.name }))
         }
 
         // 4. darkAssetNotFoundInLightPalette
-        let darkElements = darkSet.subtracting(lightSet)
-        if !darkElements.isEmpty {
-            errors.all.append(AssetsValidatorError.darkAssetsNotFoundInLightPalette(assets: darkElements.map { $0.name }))
+        let targetProjectElements = targetProjectSet.subtracting(baseProjectSet)
+        if !targetProjectElements.isEmpty {
+            errors.all.append(AssetsValidatorError.darkAssetsNotFoundInLightPalette(assets: targetProjectElements.map { $0.name }))
         }
 
         // 5. descriptionMismatch
-        lightSet.forEach { asset in
+        baseProjectSet.forEach { asset in
             if let platform = asset.platform {
-                let dark = darkSet.first(where: { $0.name == asset.name })
-                if dark?.platform != platform {
-                    errors.all.append(AssetsValidatorError.descriptionMismatch(assetName: asset.name, light: platform.rawValue, dark: dark?.platform?.rawValue ?? ""))
+                let target = targetProjectSet.first(where: { $0.name == asset.name })
+                if target?.platform != platform {
+                    errors.all.append(AssetsValidatorError.descriptionMismatch(
+                        assetName: asset.name,
+                        light: platform.rawValue,
+                        dark: target?.platform?.rawValue ?? "")
+                    )
                 }
             }
         }
@@ -234,8 +241,11 @@ public extension AssetsProcessable {
             return .failure(errors)
         }
 
-        let pairs = makeSortedAssetPairs(lightSet: lightSet, darkSet: darkSet)
-        return .success(pairs)
+        if !targetProjectSet.isEmpty {
+            return .success(makeSortedAssetPairs(lightSet: targetProjectSet))
+        }
+
+        return .success(makeSortedAssetPairs(lightSet: baseProjectSet))
     }
     
     private func makeSortedAssetPairs(lightSet: Set<AssetType>) -> [AssetPair<Self.AssetType>] {
@@ -297,15 +307,8 @@ public extension AssetsProcessable {
         assets.map { asset -> AssetType in
             
             var renamedAsset = asset
-            
-            let split = asset.name.split(separator: "/")
-            if split.count == 2, split[0] == split[1] {
-                renamedAsset.name = String(split[0])
-            } else if asset is Color, split.count == 2 {
-                renamedAsset.name = String(split[1])
-            } else {
-                renamedAsset.name = renamedAsset.name.replacingOccurrences(of: "/", with: "_")
-            }
+            renamedAsset.name = renamedAsset.name.replacingOccurrences(of: "/", with: "_")
+
             return renamedAsset
         }
     }

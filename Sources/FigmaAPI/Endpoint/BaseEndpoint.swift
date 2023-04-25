@@ -23,7 +23,9 @@ extension BaseEndpoint {
             return content(from: resource)
         } catch let mainError {
             self.logError(data: body, key: (mainError as! DecodingError).errorKey)
-            
+
+            print("request error: ", String(decoding: body, as: UTF8.self))
+
             if let error = try? JSONDecoder.default.decode(FigmaClientError.self, from: body) {
                 throw error
             }
@@ -72,12 +74,11 @@ extension DecodingError: CustomNSError {
     }
 
     public var errorKey: String {
-        ""
-//        switch self {
-//        case .keyNotFound(_, let context):
-//            return context.codingPath[1].stringValue
-//        default:
-//            return ""
-//        }
+        switch self {
+        case .keyNotFound(_, let context):
+            return context.codingPath[1].stringValue
+        default:
+            return ""
+        }
     }
 }

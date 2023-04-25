@@ -7,7 +7,8 @@ final class ImagesLoader {
     let figmaClient: FigmaClient
     let params: Params
     let platform: Platform
-    
+    let project: String?
+
     private var iconsFrameName: String {
         params.common?.icons?.figmaFrameName ?? "Icons"
     }
@@ -16,55 +17,70 @@ final class ImagesLoader {
         params.common?.images?.figmaFrameName ?? "Illustrations"
     }
     
-    init(figmaClient: FigmaClient, params: Params, platform: Platform) {
+    init(figmaClient: FigmaClient, params: Params, project: String?, platform: Platform) {
         self.figmaClient = figmaClient
         self.params = params
         self.platform = platform
+        self.project = project
     }
 
-    func loadIcons(filter: String? = nil) throws -> (light: [ImagePack], dark: [ImagePack]?) {
+    func loadIcons(
+        filter: String? = nil
+    ) throws -> (baseProjectImages: [ImagePack], targetProjectImages: [ImagePack]?) {
+
+        guard let baseFileIconId = params.figma.base.fileIconId else { fatalError("Specify the fileIconId") }
+        let targetProjectIds = params.figma.projects?.first(where: { $0.name == self.project })
+
         switch (platform, params.ios?.icons.format) {
         case (.android, _),
              (.ios, .svg):
-            let lightImages = try _loadImages(
-                fileId: params.figma.lightFileId,
+
+            let baseProjectImages = try _loadImages(
+                fileId: baseFileIconId,
                 frameName: iconsFrameName,
                 params: SVGParams(),
                 filter: filter
             )
-            let darkImages = try params.figma.darkFileId.map {
-                try _loadImages(
-                   fileId: $0,
-                   frameName: iconsFrameName,
-                   params: SVGParams(),
-                   filter: filter
+
+            let targetProjectImages = try targetProjectIds.map {
+                guard let fileIconId = $0.fileIconId else { fatalError("Specify the fileIconId for target project") }
+
+                return try _loadImages(
+                    fileId: fileIconId,
+                    frameName: iconsFrameName,
+                    params: SVGParams(),
+                    filter: filter
                )
             }
-            let result = (
-                lightImages.map { ImagePack.singleScale($0) },
-                darkImages?.map { ImagePack.singleScale($0) }
+
+            return (
+                baseProjectImages.map { ImagePack.singleScale($0) },
+                targetProjectImages?.map { ImagePack.singleScale($0) }
             )
-            return result
+
         case (.ios, _):
-            let lightImages = try _loadImages(
-                fileId: params.figma.lightFileId,
+            let baseProjectImages = try _loadImages(
+                fileId: baseFileIconId,
                 frameName: iconsFrameName,
                 params: PDFParams(),
                 filter: filter
             )
-            let darkImages = try params.figma.darkFileId.map {
-                try _loadImages(
-                   fileId: $0,
-                   frameName: iconsFrameName,
-                   params: PDFParams(),
-                   filter: filter
+
+            let targetProjectImages = try targetProjectIds.map {
+                guard let fileIconId = $0.fileIconId else { fatalError("Specify the fileIconId for target project") }
+
+                return try _loadImages(
+                    fileId: fileIconId,
+                    frameName: iconsFrameName,
+                    params: PDFParams(),
+                    filter: filter
                )
             }
-            let result = (
-                lightImages.map { ImagePack.singleScale($0) },
-                darkImages?.map { ImagePack.singleScale($0) }
+
+            return (
+                baseProjectImages.map { ImagePack.singleScale($0) },
+                targetProjectImages?.map { ImagePack.singleScale($0) }
             )
-            return result
         }
     }
 
@@ -113,7 +129,7 @@ final class ImagesLoader {
     private func fetchImageComponents(fileId: String, frameName: String, filter: String? = nil) throws -> [NodeId: Component] {
         var components = try loadComponents(fileId: fileId)
             .filter {
-                $0.containingFrame.name == frameName &&
+                $0.containingFrame.pageName.contains(frameName) &&
                     ($0.description == platform.rawValue || $0.description == nil || $0.description == "") &&
                     $0.description?.contains("none") == false
             }

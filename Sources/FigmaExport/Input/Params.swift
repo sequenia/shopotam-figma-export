@@ -8,6 +8,16 @@ struct Params: Decodable {
     struct Figma: Decodable {
         let lightFileId: String
         let darkFileId: String?
+
+        let base: FigmaProjectAssetIDs
+        let projects: [FigmaProjectAssetIDs]?
+    }
+
+    struct FigmaProjectAssetIDs: Decodable {
+        let name: String
+        let fileIconId: String?
+        let fileColorId: String?
+        let fileFontId: String?
     }
     
     struct Common: Decodable {

@@ -1,5 +1,6 @@
 import FigmaAPI
 import FigmaExportCore
+import Foundation
 
 /// Loads colors from Figma
 final class ColorsLoader {
@@ -8,16 +9,26 @@ final class ColorsLoader {
     
     private let figmaClient: FigmaClient
     private let params: Params.Figma
+    private let project: String?
 
-    init(figmaClient: FigmaClient, params: Params.Figma) {
+    init(figmaClient: FigmaClient, params: Params.Figma, project: String?) {
         self.figmaClient = figmaClient
         self.params = params
+        self.project = project
     }
     
-    func load() throws -> (light: [Color], dark: [Color]?) {
-        let lightColors = try loadColors(fileId: params.lightFileId)
-        let darkColors = try params.darkFileId.map { try loadColors(fileId: $0) }
-        return (lightColors, darkColors)
+    func load() throws -> (baseProjectColors: [Color], targetProjectColors: [Color]?) {
+        guard let fileColorId = params.base.fileColorId else { fatalError("Specify the fileColorId") }
+        let targetProjectIds = params.projects?.first(where: { $0.name == self.project })
+
+        let baseProjectColors = try loadColors(fileId: fileColorId)
+        let targetProjectColors = try targetProjectIds.map {
+            guard let fileColorId = $0.fileColorId else { fatalError("Specify the fileColorId for target project") }
+
+            return try loadColors(fileId: fileColorId)
+        }
+
+        return (baseProjectColors, targetProjectColors)
     }
     
     private func loadColors(fileId: String) throws -> [Color] {
@@ -28,8 +39,22 @@ final class ColorsLoader {
         }
 
         let sortedStyle = styles.filter { !$0.description.uppercased().contains("un use".uppercased()) }
+        let nodeIds = sortedStyle.map { $0.nodeId }
 
-        let nodes = try loadNodes(fileId: fileId, nodeIds: sortedStyle.map { $0.nodeId } )
+        var nodeIdsResult = [[String]]()
+        if nodeIds.joined().utf8.count > 3900 {
+            nodeIdsResult = nodeIds.chunked(into: 150)
+
+            var nodes = [NodeId: Node]()
+            for nodeIds in nodeIdsResult {
+                let result = try loadNodes(fileId: fileId, nodeIds: nodeIds)
+                nodes.merge(result, uniquingKeysWith: { _, new in new })
+            }
+
+            return nodesAndStylesToColors(nodes: nodes, styles: styles)
+        }
+
+        let nodes = try loadNodes(fileId: fileId, nodeIds: nodeIds)
         return nodesAndStylesToColors(nodes: nodes, styles: styles)
     }
     

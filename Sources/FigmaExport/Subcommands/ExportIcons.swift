@@ -25,6 +25,9 @@ extension FigmaExportCommand {
         \"ic/16/*\" to export all icons of size 16 pt
         """)
         var filter: String?
+
+        @Option(name: .shortAndLong, help: "Target progect name")
+        var project: String
         
         func run() throws {
             let logger = Logger(label: "com.redmadrobot.figma-export")
@@ -56,7 +59,7 @@ extension FigmaExportCommand {
             }
 
             logger.info("Fetching icons info from Figma. Please wait...")
-            let loader = ImagesLoader(figmaClient: client, params: params, platform: .ios)
+            let loader = ImagesLoader(figmaClient: client, params: params, project: project, platform: .ios)
             let images = try loader.loadIcons(filter: filter)
 
             logger.info("Processing icons...")
@@ -66,7 +69,10 @@ extension FigmaExportCommand {
                 nameReplaceRegexp: params.common?.icons?.nameReplaceRegexp,
                 nameStyle: params.ios?.icons.nameStyle
             )
-            let icons = try processor.process(light: images.light, dark: images.dark).get()
+            let icons = try processor.process(
+                baseProject: images.baseProjectImages,
+                targetProject: images.targetProjectImages
+            ).get()
 
             let assetsURL = ios.xcassetsPathImages.appendingPathComponent(ios.icons.assetsFolder)
             let output = XcodeImagesOutput(
@@ -119,7 +125,7 @@ extension FigmaExportCommand {
             
             // 1. Get Icons info
             logger.info("Fetching icons info from Figma. Please wait...")
-            let loader = ImagesLoader(figmaClient: client, params: params, platform: .android)
+            let loader = ImagesLoader(figmaClient: client, params: params, project: project, platform: .android)
             let images = try loader.loadIcons(filter: filter)
 
             // 2. Proccess images
@@ -130,7 +136,10 @@ extension FigmaExportCommand {
                 nameReplaceRegexp: params.common?.icons?.nameReplaceRegexp,
                 nameStyle: .snakeCase
             )
-            let icons = try processor.process(light: images.light, dark: images.dark).get()
+            let icons = try processor.process(
+                baseProject: images.baseProjectImages,
+                targetProject: images.targetProjectImages
+            ).get()
             
             // Create empty temp directory
             let tempDirectoryURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
