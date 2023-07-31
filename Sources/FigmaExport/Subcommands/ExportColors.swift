@@ -49,7 +49,7 @@ extension FigmaExportCommand {
                 )
 
                 let colorPairs = try processor.process(
-                    baseProject: colors.baseProjectColors,
+                    baseProject: colors.targetProjectColors ?? colors.baseProjectColors,
                     targetProject: colors.targetProjectColors
                 ).get()
 

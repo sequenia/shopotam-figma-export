@@ -24,13 +24,13 @@ final public class XcodeIconsExporter: XcodeImagesExporterBase {
             let preservesVector = output.preservesVectorRepresentationIcons?.first(where: { $0 == name }) != nil ||
                 output.preservesVectorRepresentation
 
-            var renderingIntent = output.renderIntent?.rawValue
-            if output.renderAsOriginalIcons?.first(where: { $0 == name }) != nil {
-                renderingIntent = RenderIntent.original.rawValue
-            } else if output.renderAsTemplateIcons?.first(where: { $0 == name }) != nil {
-                renderingIntent = RenderIntent.template.rawValue
-            }
-            
+//            var renderingIntent = output.renderIntent?.rawValue
+//            if output.renderAsOriginalIcons?.first(where: { $0 == name }) != nil {
+//                renderingIntent = RenderIntent.original.rawValue
+//            } else if output.renderAsTemplateIcons?.first(where: { $0 == name }) != nil {
+//
+//            }
+            let renderingIntent = RenderIntent.template.rawValue
             // Assets.xcassets/Icons/***.imageset/Contents.json
             let contents = XcodeAssetContents(
                 icons: imageDataFromPair(pair),
