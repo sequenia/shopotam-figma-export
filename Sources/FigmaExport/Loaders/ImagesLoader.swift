@@ -104,7 +104,7 @@ final class ImagesLoader {
                     platform: platform)
             }
 
-            let appIcon = try loadPNGAppIconImage(
+            let appIcon = try loadJPGAppIconImage(
                 fileId: targetProjectIds.fileImageId ?? "",
                 platform: .ios,
                 appIconName: params.ios?.images.appIconName
@@ -180,7 +180,7 @@ final class ImagesLoader {
         }
     }
 
-    private func loadPNGAppIconImage(
+    private func loadJPGAppIconImage(
         fileId: String,
         frameName: String? = nil,
         filter: String? = nil,
@@ -205,7 +205,7 @@ final class ImagesLoader {
             return Image(
                 name: "AppIcon",
                 url: URL(string: imagePath)!,
-                format: .init("png")
+                format: .init("jpg")
             )
         }.first
 
