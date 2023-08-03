@@ -260,7 +260,7 @@ final class ImagesLoader {
     private func loadImage(
         fileId: String,
         nodeId: NodeId,
-        params: FormatParams = .init(format: "png")
+        params: FormatParams = .init(format: "jpg")
     ) throws -> [NodeId: ImagePath] {
 
         let endpoint = ImageEndpoint(fileId: fileId, nodeId: nodeId, params: params)
