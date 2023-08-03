@@ -9,7 +9,7 @@ let package = Package(
         .macOS(.v10_13),
     ],
     products: [
-        .executable(name: "figma-export", targets: ["FigmaExport"])
+        .executable(name: "shopotam-figma-export", targets: ["FigmaExport"])
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-argument-parser", from: "0.3.0"),
