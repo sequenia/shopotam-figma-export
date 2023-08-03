@@ -84,14 +84,18 @@ extension FigmaExportCommand {
             
             let exporter = XcodeImagesExporter(output: output)
             let localAndRemoteFiles = try exporter.export(assets: images, append: filter != nil)
+            let appIconExport = try exporter.export(appIcon: imagesTuple.appIcon!, append: true)
+
             if filter == nil {
                 try? FileManager.default.removeItem(atPath: assetsURL.path)
             }
             logger.info("Downloading remote files...")
             let localFiles = try fileDownloader.fetch(files: localAndRemoteFiles)
+            let localAppIconFile = try fileDownloader.fetch(files: appIconExport)
 
             logger.info("Writting files to Xcode project...")
             try fileWritter.write(files: localFiles)
+            try fileWritter.write(files: localAppIconFile)
 
             do {
                 let xcodeProject = try XcodeProjectWritter(

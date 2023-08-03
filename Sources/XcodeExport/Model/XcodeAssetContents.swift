@@ -28,9 +28,11 @@ struct XcodeAssetContents: Encodable {
     }
     struct ImageData: Encodable {
         let idiom = "universal"
-        var scale: String?
-        var appearances: [DarkAppeareance]?
+        var scale: String? = nil
+        var appearances: [DarkAppeareance]? = nil
         let filename: String
+        var platform: String? = nil
+        var size: String? = nil
     }
     
     struct TemplateProperties: Encodable {

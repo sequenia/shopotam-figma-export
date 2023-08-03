@@ -84,11 +84,15 @@ final class ImagesLoader {
         }
     }
 
-    func loadImages(filter: String? = nil) throws -> (light: [ImagePack], dark: [ImagePack]?) {
+    func loadImages(filter: String? = nil) throws -> (light: [ImagePack], dark: [ImagePack]?, appIcon: ImagePack?) {
+//        guard let baseFileIconId = params.figma.base.fileIconId else { fatalError("Specify the fileIconId") }
+        guard let targetProjectIds = params.figma.projects?.first(where: { $0.name == self.project })
+        else { fatalError("Specify the fileIconId") }
+
         switch (platform, params.android?.images?.format) {
         case (.android, .png), (.android, .webp), (.ios, .none):
-            let lightImages = try loadPNGImages(
-                fileId: params.figma.lightFileId,
+            var lightImages = try loadPNGImages(
+                fileId: targetProjectIds.fileImageId ?? "",
                 frameName: imagesFrameName,
                 filter: filter,
                 platform: platform)
@@ -99,13 +103,21 @@ final class ImagesLoader {
                     filter: filter,
                     platform: platform)
             }
+
+            let appIcon = try loadPNGAppIconImage(
+                fileId: targetProjectIds.fileImageId ?? "",
+                platform: .ios,
+                appIconName: params.ios?.images.appIconName
+            )
+
             return (
                 lightImages,
-                darkImages
+                darkImages,
+                appIcon
             )
         default:
             let light = try _loadImages(
-                fileId: params.figma.lightFileId,
+                fileId: targetProjectIds.fileImageId ?? "",
                 frameName: imagesFrameName,
                 params: SVGParams(),
                 filter: filter)
@@ -119,17 +131,17 @@ final class ImagesLoader {
             }
             return (
                 light.map { ImagePack.singleScale($0) },
-                dark?.map { ImagePack.singleScale($0) }
+                dark?.map { ImagePack.singleScale($0) },
+                nil
             )
         }
     }
 
     // MARK: - Helpers
 
-    private func fetchImageComponents(fileId: String, frameName: String, filter: String? = nil) throws -> [NodeId: Component] {
+    private func fetchImageComponents(fileId: String, frameName: String?, filter: String? = nil) throws -> [NodeId: Component] {
         var components = try loadComponents(fileId: fileId)
             .filter {
-                $0.containingFrame.pageName.contains(frameName) &&
                     ($0.description == platform.rawValue || $0.description == nil || $0.description == "") &&
                     $0.description?.contains("none") == false
             }
@@ -166,6 +178,40 @@ final class ImagesLoader {
                 format: params.format
             )
         }
+    }
+
+    private func loadPNGAppIconImage(
+        fileId: String,
+        frameName: String? = nil,
+        filter: String? = nil,
+        platform: Platform,
+        appIconName: String?
+    ) throws -> ImagePack? {
+        let imagesDict = try fetchImageComponents(fileId: fileId, frameName: frameName, filter: filter)
+
+        guard let appIconImage = imagesDict.first(where: { $0.value.name == appIconName })?.key
+        else { return nil }
+
+        let imageIdToImagePath = try loadImage(
+            fileId: fileId, nodeId: appIconImage
+        )
+
+        let image = imageIdToImagePath.map { (imageId, imagePath) -> Image in
+            var name = imagesDict[imageId]!.name
+            if let stateGroupName = imagesDict[imageId]!.containingFrame.containingStateGroup?.name {
+                name = "\(stateGroupName) \(name)"
+            }
+            name = name.components(separatedBy: .init(charactersIn: "-_=")).joined(separator: " ")
+            return Image(
+                name: "AppIcon",
+                url: URL(string: imagePath)!,
+                format: .init("png")
+            )
+        }.first
+
+        guard let image = image else { return nil }
+
+        return ImagePack.singleScale(image)
     }
 
     private func loadPNGImages(fileId: String, frameName: String, filter: String? = nil, platform: Platform) throws -> [ImagePack] {
@@ -208,6 +254,16 @@ final class ImagesLoader {
 
     private func loadImages(fileId: String, nodeIds: [NodeId], params: FormatParams) throws -> [NodeId: ImagePath] {
         let endpoint = ImageEndpoint(fileId: fileId, nodeIds: nodeIds, params: params)
+        return try figmaClient.request(endpoint)
+    }
+
+    private func loadImage(
+        fileId: String,
+        nodeId: NodeId,
+        params: FormatParams = .init(format: "png")
+    ) throws -> [NodeId: ImagePath] {
+
+        let endpoint = ImageEndpoint(fileId: fileId, nodeId: nodeId, params: params)
         return try figmaClient.request(endpoint)
     }
 }

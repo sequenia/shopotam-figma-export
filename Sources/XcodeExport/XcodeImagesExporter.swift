@@ -41,6 +41,26 @@ final public class XcodeImagesExporter: XcodeImagesExporterBase {
         return files
     }
 
+    public func export(appIcon: ImagePack, append: Bool) throws -> [FileContents] {
+
+        let tempURL = output.assetsFolderURL.deletingLastPathComponent()
+        let imageDirURL = tempURL.appendingPathComponent("\(appIcon.name).appiconset")
+        var files = self.saveImagePack(pack: appIcon, to: imageDirURL)
+        let content = XcodeAssetContents(images: [imageDataForAppIconImage(appIcon.single)])
+
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        let data = try encoder.encode(content)
+
+        let fileURL = URL(string: "Contents.json")!
+        files.append(FileContents(
+            destination: Destination(directory: imageDirURL, file: fileURL),
+            data: data
+        ))
+
+        return files
+    }
+
     private func makeEmptyContentsJson() -> FileContents {
         let contentsJson = XcodeEmptyContents()
         let destination = Destination(directory: output.assetsFolderURL, file: contentsJson.fileURL)
@@ -142,6 +162,18 @@ final public class XcodeImagesExporter: XcodeImagesExporterBase {
             filename: imageURL.absoluteString
         )
     }
+
+    private func imageDataForAppIconImage(
+        _ image: Image
+    ) -> XcodeAssetContents.ImageData {
+
+        let imageURL = makeFileURL(for: image, scale: nil, dark: false)
+
+        return XcodeAssetContents.ImageData(
+            filename: imageURL.absoluteString, platform: "ios", size: "1024x1024"
+        )
+    }
+
     
     /// Trims trailing zeros from scale value 1.0 → 1, 1.5 → 1.5, 3.0 → 3
     private func normalizeScale(_ scale: Double) -> String? {

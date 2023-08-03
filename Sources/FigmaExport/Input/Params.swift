@@ -17,6 +17,7 @@ struct Params: Decodable {
         let name: String
         let fileIconId: String?
         let fileColorId: String?
+        let fileImageId: String?
         let fileFontId: String?
     }
     
@@ -82,6 +83,7 @@ struct Params: Decodable {
             
             let imageSwift: URL?
             let swiftUIImageSwift: URL?
+            let appIconName: String?
         }
         
         struct Typography: Decodable {

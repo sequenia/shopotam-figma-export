@@ -33,7 +33,7 @@ struct Version2SQFontStyle {
         //  https://gitlab.sequenia.com/ios-development/modules/uicomponents
 
         import UIKit
-        import UIComponents
+        import SQUIKit
 
         extension SQFont {
 

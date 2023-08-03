@@ -71,6 +71,12 @@ public struct ImageEndpoint: BaseEndpoint {
         self.params = params
     }
 
+    public init(fileId: String, nodeId: String, params: FormatParams) {
+        self.fileId = fileId
+        self.nodeIds = nodeId
+        self.params = params
+    }
+
     func content(from root: ImageResponse) -> [NodeId: ImagePath] {
         return root.images
     }
