@@ -4,7 +4,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "figma-export",
+    name: "shopotam-figma-export",
     platforms: [
         .macOS(.v10_13),
     ],
