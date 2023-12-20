@@ -9,12 +9,12 @@ final class ImagesLoader {
     let platform: Platform
     let project: String?
 
-    private var iconsFrameName: String {
-        params.common?.icons?.figmaFrameName ?? "Icons"
+    private var iconsFrameName: String? {
+        params.common?.icons?.figmaFrameName
     }
     
-    private var imagesFrameName: String {
-        params.common?.images?.figmaFrameName ?? "Illustrations"
+    private var imagesFrameName: String? {
+        params.common?.images?.figmaFrameName
     }
     
     init(figmaClient: FigmaClient, params: Params, project: String?, platform: Platform) {
@@ -142,6 +142,7 @@ final class ImagesLoader {
     private func fetchImageComponents(fileId: String, frameName: String?, filter: String? = nil) throws -> [NodeId: Component] {
         var components = try loadComponents(fileId: fileId)
             .filter {
+                (frameName == nil || $0.containingFrame.name == frameName) &&
                     ($0.description == platform.rawValue || $0.description == nil || $0.description == "") &&
                     $0.description?.contains("none") == false
             }
@@ -156,7 +157,7 @@ final class ImagesLoader {
         return Dictionary(uniqueKeysWithValues: components.map { ($0.nodeId, $0) })
     }
 
-    private func _loadImages(fileId: String, frameName: String, params: FormatParams, filter: String? = nil) throws -> [Image] {
+    private func _loadImages(fileId: String, frameName: String?, params: FormatParams, filter: String? = nil) throws -> [Image] {
         let imagesDict = try fetchImageComponents(fileId: fileId, frameName: frameName, filter: filter)
         
         guard !imagesDict.isEmpty else {
@@ -214,7 +215,7 @@ final class ImagesLoader {
         return ImagePack.singleScale(image)
     }
 
-    private func loadPNGImages(fileId: String, frameName: String, filter: String? = nil, platform: Platform) throws -> [ImagePack] {
+    private func loadPNGImages(fileId: String, frameName: String?, filter: String? = nil, platform: Platform) throws -> [ImagePack] {
         let imagesDict = try fetchImageComponents(fileId: fileId, frameName: frameName, filter: filter)
         
         guard !imagesDict.isEmpty else {
