@@ -41,6 +41,7 @@ struct FigmaExportCommand: ParsableCommand {
         discussion: "Exports resources (colors, icons, images, typography) from Figma to Xcode / Android Studio project",
         subcommands: [
             ExportDesignTokens.self,
+            ExportCSSColors.self,
             ExportTypography.self,
             ExportIcons.self,
             ExportImages.self,
