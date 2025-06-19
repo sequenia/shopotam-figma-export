@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "shopotam-figma-export",
     platforms: [
-        .macOS(.v10_13),
+        .macOS(.v11),
     ],
     products: [
         .executable(name: "shopotam-figma-export", targets: ["FigmaExport"])
@@ -27,6 +27,7 @@ let package = Package(
                 "FigmaExportCore",
                 "XcodeExport",
                 "AndroidExport",
+                "Utils",
                 .product(name: "XcodeProj", package: "XcodeProj"),
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
                 .product(name: "Yams", package: "Yams"),
@@ -50,11 +51,15 @@ let package = Package(
         
         // Exports resources to Xcode project
         .target(
+            name: "Utils",
+            dependencies: ["FigmaExportCore", "Stencil"],
+            path: "./Sources/Utils"
+        ),
+        .target(
             name: "XcodeExport",
             dependencies: ["FigmaExportCore", "Stencil"],
             path: "./Sources/XcodeExport"
         ),
-
         // Exports resources to Android project
         .target(
             name: "AndroidExport",

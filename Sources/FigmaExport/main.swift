@@ -34,19 +34,20 @@ struct FigmaExportCommand: ParsableCommand {
     static let svgFileConverter = VectorDrawableConverter()
     static let fileWritter = FileWritter()
     static let fileDownloader = FileDownloader()
-    
+
     static var configuration = CommandConfiguration(
-        commandName: "figma-export icons",
+        commandName: "figma-export getColors",
         abstract: "Exports resources from Figma",
         discussion: "Exports resources (colors, icons, images, typography) from Figma to Xcode / Android Studio project",
         subcommands: [
-            ExportColors.self,
+            ExportDesignTokens.self,
+            ExportTypography.self,
             ExportIcons.self,
             ExportImages.self,
             ExportTypography.self,
             GenerateConfigFile.self
         ],
-        defaultSubcommand: ExportIcons.self
+        defaultSubcommand: ExportDesignTokens.self
     )
 }
 

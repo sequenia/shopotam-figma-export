@@ -54,11 +54,12 @@ extension FigmaExportCommand {
                     platform: .android,
                     nameValidateRegexp: params.common?.colors?.nameValidateRegexp,
                     nameReplaceRegexp: params.common?.colors?.nameReplaceRegexp,
+                    ignoreBadNames: false,
                     nameStyle: .snakeCase
                 )
                 let colorPairs = try processor.process(
-                    baseProject: colors.baseProjectColors,
-                    targetProject: colors.targetProjectColors
+                    light: colors.baseProjectColors,
+                    dark: colors.targetProjectColors
                 ).get()
 
                 logger.info("Saving text styles...")
@@ -121,8 +122,8 @@ extension FigmaExportCommand {
         private func exportAndroidTextStyles(
             textStyles: [TextStyle],
             colorPairs: [AssetPair<Color>],
-            androidParams: Params.Android)
-        throws {
+            androidParams: Params.Android
+        ) throws {
             let outputPatch = URL(fileURLWithPath: androidParams.mainRes
                 .appendingPathComponent(androidParams.typography?.output ?? "").path)
 

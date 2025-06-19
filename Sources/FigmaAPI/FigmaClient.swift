@@ -13,7 +13,7 @@ final public class FigmaClient {
         let config = URLSessionConfiguration.ephemeral
         self.accessToken = accessToken
 
-        config.timeoutIntervalForRequest = 30
+        config.timeoutIntervalForRequest = 60
         session = URLSession(configuration: config, delegate: nil, delegateQueue: .main)
     }
     
@@ -49,7 +49,7 @@ final public class FigmaClient {
                 completion(.failure(error!))
                 return
             }
-//            print("response:", String(decoding: data, as: UTF8.self))
+            print("response:", String(decoding: data, as: UTF8.self))
 
             let content = APIResult<T.Content>(catching: { () -> T.Content in
                 return try endpoint.content(from: response, with: data)
@@ -58,7 +58,7 @@ final public class FigmaClient {
             completion(content)
         }
         task.resume()
-//        print("request url:", request.cURL())
+        print("request url:", request.cURL())
 
         return task
     }

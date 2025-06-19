@@ -1,16 +1,16 @@
-/// Process asset name
 public protocol AssetNameProcessable {
-    
+
     var nameReplaceRegexp: String? { get }
     var nameValidateRegexp: String? { get }
     var nameStyle: NameStyle? { get }
-    
+    var ignoreBadNames: Bool { get }
+
     func isNameValid(_ name: String) -> Bool
     func normalizeName(_ name: String, style: NameStyle) -> String
 }
 
 public extension AssetNameProcessable {
-    
+
     func isNameValid(_ name: String) -> Bool {
         if let regexp = nameValidateRegexp {
             return name.range(of: regexp, options: .regularExpression) != nil
@@ -18,7 +18,7 @@ public extension AssetNameProcessable {
             return true
         }
     }
-    
+
     func normalizeName(_ name: String, style: NameStyle) -> String {
         switch style {
         case .camelCase:
@@ -33,26 +33,34 @@ public protocol AssetsProcessable: AssetNameProcessable {
     associatedtype AssetType: Asset
     typealias ProcessingPairResult = Result<[AssetPair<AssetType>], ErrorGroup>
     typealias ProcessingResult = Result<[AssetType], ErrorGroup>
-    
+
     var platform: Platform { get }
-    
-    func process(baseProject: [AssetType], targetProject: [AssetType]?) -> ProcessingPairResult
+
+    func process(light: [AssetType], dark: [AssetType]?) -> ProcessingPairResult
     func process(assets: [AssetType]) -> ProcessingResult
 }
 
 public struct ColorsProcessor: AssetsProcessable {
     public typealias AssetType = Color
-    
+
     public let platform: Platform
     public let nameValidateRegexp: String?
     public let nameReplaceRegexp: String?
     public let nameStyle: NameStyle?
-    
-    public init(platform: Platform, nameValidateRegexp: String?, nameReplaceRegexp: String?, nameStyle: NameStyle?) {
+    public let ignoreBadNames: Bool
+
+    public init(
+        platform: Platform,
+        nameValidateRegexp: String?,
+        nameReplaceRegexp: String?,
+        ignoreBadNames: Bool?,
+        nameStyle: NameStyle?
+    ) {
         self.platform = platform
         self.nameValidateRegexp = nameValidateRegexp
         self.nameReplaceRegexp = nameReplaceRegexp
         self.nameStyle = nameStyle
+        self.ignoreBadNames = ignoreBadNames ?? false
     }
 }
 
@@ -63,35 +71,43 @@ public struct ImagesProcessor: AssetsProcessable {
     public let nameValidateRegexp: String?
     public let nameReplaceRegexp: String?
     public let nameStyle: NameStyle?
-    
-    public init(platform: Platform, nameValidateRegexp: String? = nil, nameReplaceRegexp: String? = nil, nameStyle: NameStyle?) {
+    public let ignoreBadNames: Bool
+
+    public init(
+        platform: Platform,
+        nameValidateRegexp: String? = nil,
+        nameReplaceRegexp: String? = nil,
+        ignoreBadNames: Bool?,
+        nameStyle: NameStyle?
+    ) {
         self.platform = platform
         self.nameValidateRegexp = nameValidateRegexp
         self.nameReplaceRegexp = nameReplaceRegexp
         self.nameStyle = nameStyle
+        self.ignoreBadNames = ignoreBadNames ?? false
     }
 }
 
 public extension AssetsProcessable {
 
-    func process(baseProject: [AssetType], targetProject: [AssetType]?) -> ProcessingPairResult {
-        if let targetProject = targetProject {
+    func process(light: [AssetType], dark: [AssetType]?) -> ProcessingPairResult {
+        if let dark = dark {
             return validateAndMakePairs(
-                baseProject: normalizeAssetName(assets: baseProject),
-                targetProject: normalizeAssetName(assets: targetProject)
+                light: normalizeAssetName(assets: light),
+                dark: normalizeAssetName(assets: dark)
             )
         } else {
             return validateAndMakePairs(
-                light: normalizeAssetName(assets: baseProject)
+                light: normalizeAssetName(assets: light)
             )
         }
     }
-    
+
     func process(assets: [AssetType]) -> ProcessingResult {
         let assets = normalizeAssetName(assets: assets)
         return validateAndProcess(assets: assets)
     }
-    
+
     private func validateAndProcess(assets: [AssetType]) -> ProcessingResult {
         var errors = ErrorGroup()
 
@@ -100,7 +116,7 @@ public extension AssetsProcessable {
         assets.forEach { asset in
 
             // badName
-            if !isNameValid(asset.name) {
+            if !isNameValid(asset.name) && !self.ignoreBadNames {
                 errors.all.append(AssetsValidatorError.badName(name: asset.name))
             }
 
@@ -115,10 +131,11 @@ public extension AssetsProcessable {
         if !errors.all.isEmpty {
             return .failure(errors)
         }
-        
+
         let assets = set
             .sorted { $0.name < $1.name }
             .filter { $0.platform == nil || $0.platform == platform }
+            .filter { isNameValid($0.name) }
             .map { asset -> AssetType in
                 var newAsset = asset
                 if let replaceRegExp = nameReplaceRegexp, let regexp = nameValidateRegexp {
@@ -129,10 +146,10 @@ public extension AssetsProcessable {
                 }
                 return newAsset
             }
-        
+
         return .success(assets)
     }
-    
+
     private func replace(_ name: String, matchRegExp: String, replaceRegExp: String) -> String {
         let result = name.replace(matchRegExp) { array in
             replaceRegExp.replace(#"\$(\d)"#) {
@@ -140,7 +157,7 @@ public extension AssetsProcessable {
                 return array[index]
             }
         }
-        
+
         return result
     }
 
@@ -152,7 +169,7 @@ public extension AssetsProcessable {
         light.forEach { asset in
 
             // badName
-            if !isNameValid(asset.name) {
+            if !isNameValid(asset.name) && !self.ignoreBadNames{
                 errors.all.append(AssetsValidatorError.badName(name: asset.name))
             }
 
@@ -172,27 +189,24 @@ public extension AssetsProcessable {
         return .success(pairs)
     }
 
-    private func validateAndMakePairs(
-        baseProject: [AssetType],
-        targetProject: [AssetType]
-    ) -> ProcessingPairResult {
+    private func validateAndMakePairs(light: [AssetType], dark: [AssetType]) -> ProcessingPairResult {
         var errors = ErrorGroup()
 
         // 1. countMismatch
-        if baseProject.count != targetProject.count {
-            errors.all.append(AssetsValidatorError.countMismatch(light: baseProject.count, dark: targetProject.count))
+        if light.count != dark.count {
+            errors.all.append(AssetsValidatorError.countMismatch(light: light.count, dark: dark.count))
         }
 
         // 2. foundDuplicate
-        var baseProjectSet: Set<AssetType> = []
-        baseProject.forEach { asset in
+        var lightSet: Set<AssetType> = []
+        light.forEach { asset in
 
             // badName
-            if !isNameValid(asset.name) {
+            if !isNameValid(asset.name) && !self.ignoreBadNames {
                 errors.all.append(AssetsValidatorError.badName(name: asset.name))
             }
 
-            switch baseProjectSet.insert(asset) {
+            switch lightSet.insert(asset) {
             case (true, _):
                 break // ok
             case (false, let oldMember): // already exists
@@ -200,9 +214,9 @@ public extension AssetsProcessable {
             }
         }
 
-        var targetProjectSet: Set<AssetType> = []
-        targetProject.forEach { asset in
-            switch targetProjectSet.insert(asset) {
+        var darkSet: Set<AssetType> = []
+        dark.forEach { asset in
+            switch darkSet.insert(asset) {
             case (true, _):
                 break // ok
             case (false, let oldMember): // already exists
@@ -212,27 +226,23 @@ public extension AssetsProcessable {
 
         // 3. lightAssetNotFoundInDarkPalette
 
-        let baseProjectElements = baseProjectSet.subtracting(targetProjectSet)
-        if !baseProjectElements.isEmpty {
-            errors.all.append(AssetsValidatorError.lightAssetsNotFoundInDarkPalette(assets: baseProjectElements.map { $0.name }))
+        let lightElements = lightSet.subtracting(darkSet)
+        if !lightElements.isEmpty {
+            errors.all.append(AssetsValidatorError.lightAssetsNotFoundInDarkPalette(assets: lightElements.map { $0.name }))
         }
 
         // 4. darkAssetNotFoundInLightPalette
-        let targetProjectElements = targetProjectSet.subtracting(baseProjectSet)
-        if !targetProjectElements.isEmpty {
-            errors.all.append(AssetsValidatorError.darkAssetsNotFoundInLightPalette(assets: targetProjectElements.map { $0.name }))
+        let darkElements = darkSet.subtracting(lightSet)
+        if !darkElements.isEmpty {
+            errors.all.append(AssetsValidatorError.darkAssetsNotFoundInLightPalette(assets: darkElements.map { $0.name }))
         }
 
         // 5. descriptionMismatch
-        baseProjectSet.forEach { asset in
+        lightSet.forEach { asset in
             if let platform = asset.platform {
-                let target = targetProjectSet.first(where: { $0.name == asset.name })
-                if target?.platform != platform {
-                    errors.all.append(AssetsValidatorError.descriptionMismatch(
-                        assetName: asset.name,
-                        light: platform.rawValue,
-                        dark: target?.platform?.rawValue ?? "")
-                    )
+                let dark = darkSet.first(where: { $0.name == asset.name })
+                if dark?.platform != platform {
+                    errors.all.append(AssetsValidatorError.descriptionMismatch(assetName: asset.name, light: platform.rawValue, dark: dark?.platform?.rawValue ?? ""))
                 }
             }
         }
@@ -241,17 +251,15 @@ public extension AssetsProcessable {
             return .failure(errors)
         }
 
-        if !targetProjectSet.isEmpty {
-            return .success(makeSortedAssetPairs(lightSet: targetProjectSet))
-        }
-
-        return .success(makeSortedAssetPairs(lightSet: baseProjectSet))
+        let pairs = makeSortedAssetPairs(lightSet: lightSet, darkSet: darkSet)
+        return .success(pairs)
     }
-    
+
     private func makeSortedAssetPairs(lightSet: Set<AssetType>) -> [AssetPair<Self.AssetType>] {
         return lightSet
             .sorted { $0.name < $1.name }
             .filter { $0.platform == nil || $0.platform == platform }
+            .filter { isNameValid($0.name) }
             .map { lightAsset -> AssetPair<AssetType> in
 
                 var newLightAsset = lightAsset
@@ -259,7 +267,7 @@ public extension AssetsProcessable {
                 if let replaceRegExp = nameReplaceRegexp, let regexp = nameValidateRegexp {
                     newLightAsset.name = self.replace(newLightAsset.name, matchRegExp: regexp, replaceRegExp: replaceRegExp)
                 }
-                
+
                 if let style = nameStyle {
                     newLightAsset.name = self.normalizeName(newLightAsset.name, style: style)
                 }
@@ -292,7 +300,7 @@ public extension AssetsProcessable {
                     newLightAsset.name = self.replace(newLightAsset.name, matchRegExp: regexp, replaceRegExp: replaceRegExp)
                     newDarkAsset.name = self.replace(newDarkAsset.name, matchRegExp: regexp, replaceRegExp: replaceRegExp)
                 }
-                
+
                 if let style = nameStyle {
                     newLightAsset.name = self.normalizeName(newLightAsset.name, style: style)
                     newDarkAsset.name = self.normalizeName(newDarkAsset.name, style: style)
@@ -301,14 +309,21 @@ public extension AssetsProcessable {
                 return AssetPair(light: newLightAsset, dark: newDarkAsset)
             }
     }
-    
+
     /// Normalizes asset name by replacing "/" with "_" and by removing duplication (e.g. "color/color" becomes "color"
     private func normalizeAssetName(assets: [AssetType]) -> [AssetType] {
         assets.map { asset -> AssetType in
-            
-            var renamedAsset = asset
-            renamedAsset.name = renamedAsset.name.replacingOccurrences(of: "/", with: "_")
 
+            var renamedAsset = asset
+
+            let split = asset.name.split(separator: "/")
+            if split.count == 2, split[0] == split[1] {
+                renamedAsset.name = String(split[0])
+            } else if asset is Color, split.count == 2 {
+                renamedAsset.name = String(split[1])
+            } else {
+                renamedAsset.name = renamedAsset.name.replacingOccurrences(of: "/", with: "_")
+            }
             return renamedAsset
         }
     }

@@ -18,6 +18,7 @@ public struct Style: Decodable {
         components = components.map({
             $0.upperCamelCased()
         })
+
         return components.joined().lowerCamelCased()
     }
 }

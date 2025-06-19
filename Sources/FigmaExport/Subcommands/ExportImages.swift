@@ -67,11 +67,12 @@ extension FigmaExportCommand {
                 platform: .ios,
                 nameValidateRegexp: params.common?.images?.nameValidateRegexp,
                 nameReplaceRegexp: params.common?.images?.nameReplaceRegexp,
+                ignoreBadNames: false,
                 nameStyle: params.ios?.images.nameStyle
             )
             let images = try processor.process(
-                baseProject: imagesTuple.light,
-                targetProject: imagesTuple.dark
+                light: imagesTuple.light,
+                dark: imagesTuple.dark
             ).get()
 
             let assetsURL = ios.xcassetsPathImages.appendingPathComponent(ios.images.assetsFolder)
@@ -130,9 +131,10 @@ extension FigmaExportCommand {
                 platform: .android,
                 nameValidateRegexp: params.common?.images?.nameValidateRegexp,
                 nameReplaceRegexp: params.common?.images?.nameReplaceRegexp,
+                ignoreBadNames: false,
                 nameStyle: .snakeCase
             )
-            let images = try processor.process(baseProject: imagesTuple.light, targetProject: imagesTuple.dark).get()
+            let images = try processor.process(light: imagesTuple.light, dark: imagesTuple.dark).get()
             
             switch androidImages.format {
             case .svg:

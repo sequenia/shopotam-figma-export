@@ -67,11 +67,12 @@ extension FigmaExportCommand {
                 platform: .ios,
                 nameValidateRegexp: params.common?.icons?.nameValidateRegexp,
                 nameReplaceRegexp: params.common?.icons?.nameReplaceRegexp,
+                ignoreBadNames: false,
                 nameStyle: params.ios?.icons.nameStyle
             )
             let icons = try processor.process(
-                baseProject: images.baseProjectImages,
-                targetProject: images.targetProjectImages
+                light: images.baseProjectImages,
+                dark: images.targetProjectImages
             ).get()
 
             let assetsURL = ios.xcassetsPathImages.appendingPathComponent(ios.icons.assetsFolder)
@@ -134,11 +135,13 @@ extension FigmaExportCommand {
                 platform: .android,
                 nameValidateRegexp: params.common?.icons?.nameValidateRegexp,
                 nameReplaceRegexp: params.common?.icons?.nameReplaceRegexp,
+                ignoreBadNames: false,
                 nameStyle: .snakeCase
             )
+
             let icons = try processor.process(
-                baseProject: images.baseProjectImages,
-                targetProject: images.targetProjectImages
+                light: images.baseProjectImages,
+                dark: images.targetProjectImages
             ).get()
             
             // Create empty temp directory

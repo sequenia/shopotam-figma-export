@@ -8,13 +8,13 @@ struct Params: Decodable {
     struct Figma: Decodable {
         let lightFileId: String
         let darkFileId: String?
-
-        let base: FigmaProjectAssetIDs
+         let base: FigmaProjectAssetIDs
         let projects: [FigmaProjectAssetIDs]?
     }
 
     struct FigmaProjectAssetIDs: Decodable {
         let name: String
+        let cssFilePath: String?
         let fileIconId: String?
         let fileColorId: String?
         let fileImageId: String?
@@ -59,7 +59,7 @@ struct Params: Decodable {
             let colorSwift: URL?
             let swiftuiColorSwift: URL?
         }
-        
+
         struct Icons: Decodable {
             let nameStyle: NameStyle
 
@@ -112,8 +112,9 @@ struct Params: Decodable {
         }
 
         struct Typography: Decodable {
-
             let output: String
+            let outputFileName: String
+            let outputfilePath: String
             let attributes: [TypographyAttributes]?
         }
 
@@ -138,6 +139,8 @@ struct Params: Decodable {
 
         struct Colors: Decodable {
             let output: String
+            let outputFileName: String
+            let outputfilePath: String
         }
 
         let mainRes: URL
