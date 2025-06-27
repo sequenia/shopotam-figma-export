@@ -103,9 +103,15 @@ final public class XcodeIconsExporter: XcodeImagesExporterBase {
     }
 
     private func saveImage(_ image: Image, to directory: URL, scale: Double? = nil, dark: Bool) -> FileContents {
-
         let imageURL = makeFileURL(for: image, scale: scale, dark: dark)
         let destination = Destination(directory: directory, file: imageURL)
+
+        if let content = image.content {
+            return FileContents(
+                destination: destination,
+                data: content
+            )
+        }
 
         return FileContents(
             destination: destination,

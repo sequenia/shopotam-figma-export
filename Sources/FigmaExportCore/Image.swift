@@ -5,6 +5,7 @@ public struct Image: Asset {
     public var name: String
     public let format: String
     public let url: URL
+    public let content: Data?
     public var platform: Platform?
     
     public init(name: String, platform: Platform? = nil, url: URL, format: String) {
@@ -12,8 +13,17 @@ public struct Image: Asset {
         self.platform = platform
         self.url = url
         self.format = format
+        self.content = nil
     }
-    
+
+    public init(name: String, platform: Platform? = nil, content: Data, format: String) {
+        self.name = name.transformUnicode()
+        self.platform = platform
+        self.content = content
+        self.format = format
+        self.url = URL(string: "/empty")!
+    }
+
     // MARK: Hashable
     
     public static func == (lhs: Image, rhs: Image) -> Bool {

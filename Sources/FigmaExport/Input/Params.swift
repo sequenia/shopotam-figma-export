@@ -1,24 +1,27 @@
 import Foundation
 import FigmaExportCore
 
-extension NameStyle: Decodable {}
-
 struct Params: Decodable {
 
     struct Figma: Decodable {
         let lightFileId: String
         let darkFileId: String?
-         let base: FigmaProjectAssetIDs
+        let base: FigmaProjectAssetIDs
         let projects: [FigmaProjectAssetIDs]?
     }
 
     struct FigmaProjectAssetIDs: Decodable {
         let name: String
-        let cssFilePath: String?
         let fileIconId: String?
         let fileColorId: String?
         let fileImageId: String?
         let fileFontId: String?
+
+        let cssFilePath: String?
+        let iconURL: String?
+        let colorURL: String?
+        let typographyURL: String?
+        let spaceTokensURL: String?
     }
     
     struct Common: Decodable {
@@ -93,7 +96,13 @@ struct Params: Decodable {
             let generateComponents: Bool
             let componentsDirectory: URL?
         }
-        
+
+        struct SpaceTokens: Decodable {
+            let roundedTheme: RoundedThemeType
+            let output: String
+            let outputFileName: String
+        }
+
         let xcodeprojPath: String
         let xcodeprojMainGroupName: String?
         let target: String
@@ -104,6 +113,7 @@ struct Params: Decodable {
         let icons: Icons
         let images: Images
         let typography: Typography
+        let spaceTokens: SpaceTokens?
     }
 
     struct Android: Decodable {
@@ -116,6 +126,12 @@ struct Params: Decodable {
             let outputFileName: String
             let outputfilePath: String
             let attributes: [TypographyAttributes]?
+        }
+
+        struct SpaceTokens: Decodable {
+            let roundedTheme: RoundedThemeType
+            let output: String
+            let outputFileName: String
         }
 
         struct Images: Decodable {
@@ -148,6 +164,7 @@ struct Params: Decodable {
         let images: Images?
         let typography: Typography?
         let colors: Colors?
+        let spaceTokens: SpaceTokens?
     }
 
     let figma: Figma
