@@ -37,7 +37,13 @@ extension FigmaExportCommand {
 
             let colorURL = params.figma.projects?.first(where: { $0.name == project })?.colorURL ?? ""
 
-            guard let dataCss = try? Data(contentsOf: URL(string: colorURL)!),
+            var data = try? Data(contentsOf: URL(fileURLWithPath: colorURL))
+
+            if let url = URL(string: colorURL) {
+                data = data == nil ? try? Data(contentsOf: url) : data
+            }
+
+            guard let dataCss = data,
                   let css = String(data: dataCss, encoding: .utf8)
             else { return }
 
