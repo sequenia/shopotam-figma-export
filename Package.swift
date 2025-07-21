@@ -57,13 +57,13 @@ let package = Package(
         ),
         .target(
             name: "XcodeExport",
-            dependencies: ["FigmaExportCore", "Stencil"],
+            dependencies: ["FigmaExportCore", "Stencil", "FigmaAPI"],
             path: "./Sources/XcodeExport"
         ),
         // Exports resources to Android project
         .target(
             name: "AndroidExport",
-            dependencies: ["FigmaExportCore"],
+            dependencies: ["FigmaExportCore", "FigmaAPI"],
             path: "./Sources/AndroidExport"
         )
     ]
