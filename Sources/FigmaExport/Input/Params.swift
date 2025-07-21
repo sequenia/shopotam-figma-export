@@ -122,7 +122,7 @@ struct Params: Decodable {
         }
 
         struct Typography: Decodable {
-            let output: String
+            let output: String?
             let outputFileName: String
             let outputfilePath: String
             let attributes: [TypographyAttributes]?

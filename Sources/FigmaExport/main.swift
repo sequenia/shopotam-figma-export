@@ -45,8 +45,6 @@ struct FigmaExportCommand: ParsableCommand {
             ExportIcons.self,
             ExportDesignTokens.self,
             ExportCSSColors.self,
-            ExportTypography.self,
-            ExportIcons.self,
             ExportImages.self,
             ExportTypography.self,
             GenerateConfigFile.self
