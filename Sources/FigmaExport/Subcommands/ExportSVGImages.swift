@@ -29,7 +29,7 @@ extension FigmaExportCommand {
 
             let iconURL = params.figma.projects?.first(where: { $0.name == project })?.iconURL ?? ""
 
-            guard let content = try? Data(contentsOf: URL(fileURLWithPath: iconURL))
+            guard let content = try? Data(contentsOf: URL(string: iconURL)!)
             else { return }
 
             if let json = self.convertToDictionary(text: content) {

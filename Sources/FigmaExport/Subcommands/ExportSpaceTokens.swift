@@ -31,16 +31,16 @@ extension FigmaExportCommand {
 
             let spaceTokensURL = params.figma.projects?.first(where: { $0.name == project })?.spaceTokensURL ?? ""
 
-            guard let content = try? Data(contentsOf: URL(fileURLWithPath: spaceTokensURL))
+            guard let content = try? Data(contentsOf: URL(string: spaceTokensURL)!)
             else { return }
 
             let spaceTokens = try SpaceTokens.decode(from: content)
 
-            if let ios = params.ios {
+            if params.ios != nil {
                 try xcodeExport(spaceTokens: spaceTokens, params: params)
             }
 
-            if let android = params.android {
+            if params.android != nil {
                 try androidExport(spaceTokens: spaceTokens, params: params)
             }
         }
@@ -54,11 +54,11 @@ extension FigmaExportCommand {
                 case .none: spaceTokens.roundedNone
             }
 
-            let outputPatch = URL(fileURLWithPath: ios.spaceTokens?.output ?? "")
+            let outputfilePath = URL(fileURLWithPath: ios.spaceTokens?.outputfilePath ?? "")
             let fileName = URL(string: ios.spaceTokens?.outputFileName ?? "")
 
             let exporter = XcodeSpaceTokensExporter(
-                outputDirectory: outputPatch,
+                outputDirectory: outputfilePath,
                 fileName: fileName
             )
 
@@ -92,11 +92,11 @@ extension FigmaExportCommand {
             case .none: spaceTokens.roundedNone
             }
 
-            let outputPatch = URL(fileURLWithPath: android.spaceTokens?.output ?? "")
+            let outputfilePath = URL(fileURLWithPath: android.spaceTokens?.outputfilePath ?? "")
             let fileName = URL(string: android.spaceTokens?.outputFileName ?? "")
 
             let exporter = AndroidSpaceTokensExporter(
-                outputDirectory: outputPatch,
+                outputDirectory: outputfilePath,
                 fileName: fileName
             )
 

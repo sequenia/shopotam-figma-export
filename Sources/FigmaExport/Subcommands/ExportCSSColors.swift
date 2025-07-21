@@ -20,7 +20,8 @@ extension FigmaExportCommand {
         static let configuration = CommandConfiguration(
             commandName: "getColors",
             abstract: "Exports CSSColors",
-            discussion: "Exports light and dark color palette from Figma to Xcode / Android Studio project")
+            discussion: "Exports light and dark color palette from Figma to Xcode / Android Studio project"
+        )
 
         @Option(name: .shortAndLong, help: "An input YAML file with figma and platform properties.")
         var input: String
@@ -34,9 +35,9 @@ extension FigmaExportCommand {
             let reader = ParamsReader(inputPath: input.isEmpty ? "figma-export.yaml" : input)
             let params = try reader.read()
 
-            let cssFilePath = params.figma.projects?.first(where: { $0.name == project })?.cssFilePath ?? ""
+            let colorURL = params.figma.projects?.first(where: { $0.name == project })?.colorURL ?? ""
 
-            guard let dataCss = try? Data(contentsOf: URL(fileURLWithPath: cssFilePath)),
+            guard let dataCss = try? Data(contentsOf: URL(string: colorURL)!),
                   let css = String(data: dataCss, encoding: .utf8)
             else { return }
 

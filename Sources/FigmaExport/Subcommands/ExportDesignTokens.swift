@@ -28,10 +28,12 @@ extension FigmaExportCommand {
             let reader = ParamsReader(inputPath: input.isEmpty ? "figma-export.yaml" : input)
             let params = try reader.read()
 
-            let colorURL = params.figma.projects?.first(where: { $0.name == project })?.colorURL ?? ""
+            let typographyURL = params.figma.projects?.first(where: { $0.name == project })?.typographyURL ?? ""
 
-            guard let content = try? Data(contentsOf: URL(fileURLWithPath: colorURL))
-            else { return }
+            guard let content = try? Data(contentsOf: URL(string: typographyURL)!)
+            else {
+                return
+            }
 
             let decoder = JSONDecoder()
             let designTokens = try decoder.decode(DesignTokens.self, from: content)

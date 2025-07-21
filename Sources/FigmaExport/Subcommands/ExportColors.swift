@@ -22,62 +22,63 @@ extension FigmaExportCommand {
         var project: String
         
         func run() throws {
-//            let logger = Logger(label: "com.redmadrobot.figma-export")
-//            
-//            let reader = ParamsReader(inputPath: input.isEmpty ? "figma-export.yaml" : input)
-//            let params = try reader.read()
-//
-//            guard let accessToken = ProcessInfo.processInfo.environment["FIGMA_PERSONAL_TOKEN"] else {
-//                throw FigmaExportError.accessTokenNotFound
-//            }
-//
-//            let client = FigmaClient(accessToken: accessToken)
-//
-//            logger.info("Using FigmaExport to export colors.")
-//
-//            logger.info("Fetching colors. Please wait...")
-//            let loader = ColorsLoader(figmaClient: client, params: params.figma, project: project)
-//            let colors = try loader.load()
-//
-//            if let ios = params.ios {
-//                logger.info("Processing colors...")
-//                let processor = ColorsProcessor(
-//                    platform: .ios,
-//                    nameValidateRegexp: params.common?.colors?.nameValidateRegexp,
-//                    nameReplaceRegexp: params.common?.colors?.nameReplaceRegexp,
-//                    ignoreBadNames: false,
-//                    nameStyle: params.ios?.colors.nameStyle
-//                )
-//
-//                let colorPairs = try processor.process(
-//                    baseProject: colors.targetProjectColors ?? colors.baseProjectColors,
-//                    targetProject: colors.targetProjectColors
-//                ).get()
-//
-//                logger.info("Exporting colors to Xcode project...")
-//                try exportXcodeColors(colorPairs: colorPairs, iosParams: ios, logger: logger)
-//
-//                logger.info("Done!")
-//            }
-//            
-//            if let android = params.android {
-//                logger.info("Processing colors...")
-//                let processor = ColorsProcessor(
-//                    platform: .android,
-//                    nameValidateRegexp: params.common?.colors?.nameValidateRegexp,
-//                    nameReplaceRegexp: params.common?.colors?.nameReplaceRegexp,
-//                    nameStyle: .snakeCase
-//                )
-//                let colorPairs = try processor.process(
-//                    baseProject: colors.baseProjectColors,
-//                    targetProject: colors.targetProjectColors
-//                ).get()
-//
-//                logger.info("Exporting colors to Android Studio project...")
-//                try exportAndroidColors(colorPairs: colorPairs, androidParams: android)
-//
-//                logger.info("Done!")
-//            }
+            let logger = Logger(label: "com.redmadrobot.figma-export")
+            
+            let reader = ParamsReader(inputPath: input.isEmpty ? "figma-export.yaml" : input)
+            let params = try reader.read()
+
+            guard let accessToken = ProcessInfo.processInfo.environment["FIGMA_PERSONAL_TOKEN"] else {
+                throw FigmaExportError.accessTokenNotFound
+            }
+
+            let client = FigmaClient(accessToken: accessToken)
+
+            logger.info("Using FigmaExport to export colors.")
+
+            logger.info("Fetching colors. Please wait...")
+            let loader = ColorsLoader(figmaClient: client, params: params.figma, project: project)
+            let colors = try loader.load()
+
+            if let ios = params.ios {
+                logger.info("Processing colors...")
+                let processor = ColorsProcessor(
+                    platform: .ios,
+                    nameValidateRegexp: params.common?.colors?.nameValidateRegexp,
+                    nameReplaceRegexp: params.common?.colors?.nameReplaceRegexp,
+                    ignoreBadNames: false,
+                    nameStyle: params.ios?.colors.nameStyle
+                )
+
+                let colorPairs = try processor.process(
+                    light: colors.targetProjectColors ?? colors.baseProjectColors,
+                    dark: colors.targetProjectColors
+                ).get()
+
+                logger.info("Exporting colors to Xcode project...")
+                try exportXcodeColors(colorPairs: colorPairs, iosParams: ios, logger: logger)
+
+                logger.info("Done!")
+            }
+            
+            if let android = params.android {
+                logger.info("Processing colors...")
+                let processor = ColorsProcessor(
+                    platform: .android,
+                    nameValidateRegexp: params.common?.colors?.nameValidateRegexp,
+                    nameReplaceRegexp: params.common?.colors?.nameReplaceRegexp,
+                    ignoreBadNames: false,
+                    nameStyle: .snakeCase
+                )
+                let colorPairs = try processor.process(
+                    light: colors.targetProjectColors ?? colors.baseProjectColors,
+                    dark: colors.targetProjectColors
+                ).get()
+
+                logger.info("Exporting colors to Android Studio project...")
+                try exportAndroidColors(colorPairs: colorPairs, androidParams: android)
+
+                logger.info("Done!")
+            }
         }
         
         private func exportXcodeColors(colorPairs: [AssetPair<Color>], iosParams: Params.iOS, logger: Logger) throws {

@@ -1,4 +1,4 @@
-public enum FontWidthType: Double {
+public enum FontWidthType: Double, CaseIterable {
 
     case light = 300.0
     case regular = 400.0

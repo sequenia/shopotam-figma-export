@@ -99,7 +99,7 @@ struct Params: Decodable {
 
         struct SpaceTokens: Decodable {
             let roundedTheme: RoundedThemeType
-            let output: String
+            let outputfilePath: String
             let outputFileName: String
         }
 
@@ -130,7 +130,7 @@ struct Params: Decodable {
 
         struct SpaceTokens: Decodable {
             let roundedTheme: RoundedThemeType
-            let output: String
+            let outputfilePath: String
             let outputFileName: String
         }
 
