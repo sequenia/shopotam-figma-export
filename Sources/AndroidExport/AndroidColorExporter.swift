@@ -255,6 +255,6 @@ private extension Color {
               blue >= 0 && blue <= 255 else {
             return nil
         }
-        return String(format: "0xFF%02X%02X%02X", Int(alpha), Int(red), Int(green), Int(blue))
+        return String(format: "0xFF%02X%02X%02X", Int(red), Int(green), Int(blue))
     }
 }

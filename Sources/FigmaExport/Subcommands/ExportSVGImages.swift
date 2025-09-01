@@ -37,11 +37,13 @@ extension FigmaExportCommand {
                 let images = imageParser.run()
 
                 if params.ios != nil {
+                    logger.info("Export icons...")
                     try self.exportiOSIcons(
                         params: params,
                         logger: logger,
                         images: images
                     )
+                    logger.info("Done")
                 }
 
                 if params.android != nil {
@@ -51,6 +53,7 @@ extension FigmaExportCommand {
                         params: params,
                         logger: logger
                     )
+                    logger.info("Done")
                 }
             }
         }

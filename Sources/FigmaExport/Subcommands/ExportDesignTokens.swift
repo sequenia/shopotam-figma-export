@@ -102,6 +102,7 @@ extension FigmaExportCommand {
             }
 
             if let android = params.android {
+                logger.info("Saving text styles...")
                 try self.exportAndroidTextStyles(
                     textStyles: [
                         "body": textStylesBody,
@@ -112,6 +113,7 @@ extension FigmaExportCommand {
                     ],
                     androidParams: android
                 )
+                logger.info("Done!")
             }
         }
 

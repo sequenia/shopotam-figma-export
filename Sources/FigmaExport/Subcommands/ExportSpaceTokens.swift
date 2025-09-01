@@ -37,11 +37,15 @@ extension FigmaExportCommand {
             let spaceTokens = try SpaceTokens.decode(from: content)
 
             if params.ios != nil {
+                logger.info("Export space tokens...")
                 try xcodeExport(spaceTokens: spaceTokens, params: params)
+                logger.info("Done!")
             }
 
             if params.android != nil {
+                logger.info("Export space tokens...")
                 try androidExport(spaceTokens: spaceTokens, params: params)
+                logger.info("Done!")
             }
         }
 

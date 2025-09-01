@@ -30,7 +30,6 @@ final public class AndroidSpaceTokensExporter {
             spaceTokens: spaceTokens, roundedCategory: roundedCategory
         )
 
-        print(contentFile)
         return FileContents(
             destination: Destination(
                 directory: outputDirectory,
