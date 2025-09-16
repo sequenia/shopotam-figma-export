@@ -68,9 +68,9 @@ final class XcodeTypographyExporterTests: XCTestCase {
         }
         """
         
-        files.forEach {
-            print(String(data: $0.data!, encoding: .utf8)!)
-        }
+//        files.forEach {
+//            print(String(data: $0.data!, encoding: .utf8)!)
+//        }
         
         XCTAssertEqual(
             files,
@@ -127,9 +127,9 @@ final class XcodeTypographyExporterTests: XCTestCase {
         }
         """
         
-        files.forEach {
-            print(String(data: $0.data!, encoding: .utf8)!)
-        }
+//        files.forEach {
+//            print(String(data: $0.data!, encoding: .utf8)!)
+//        }
         
         XCTAssertEqual(
             files,

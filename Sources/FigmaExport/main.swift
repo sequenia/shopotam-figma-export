@@ -36,7 +36,7 @@ struct FigmaExportCommand: ParsableCommand {
     static let fileDownloader = FileDownloader()
 
     static var configuration = CommandConfiguration(
-        commandName: "figma-export getColors",
+        commandName: "figma-export images",
         abstract: "Exports resources from Figma",
         discussion: "Exports resources (colors, icons, images, typography) from Figma to Xcode / Android Studio project",
         subcommands: [
@@ -47,9 +47,10 @@ struct FigmaExportCommand: ParsableCommand {
             ExportCSSColors.self,
             ExportImages.self,
             ExportTypography.self,
+            ExportColors.self,
             GenerateConfigFile.self
         ],
-        defaultSubcommand: ExportCSSColors.self
+        defaultSubcommand: ExportImages.self
     )
 }
 
