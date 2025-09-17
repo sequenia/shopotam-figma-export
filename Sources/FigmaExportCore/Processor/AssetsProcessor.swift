@@ -124,8 +124,7 @@ public extension AssetsProcessable {
             case (true, _):
                 break // ok
             case (false, let oldMember): // already exists
-                return
-//                errors.all.append(AssetsValidatorError.foundDuplicate(assetName: oldMember.name))
+                errors.all.append(AssetsValidatorError.foundDuplicate(assetName: oldMember.name))
             }
         }
 
@@ -178,8 +177,7 @@ public extension AssetsProcessable {
             case (true, _):
                 break // ok
             case (false, let oldMember): // already exists
-                return
-//                errors.all.append(AssetsValidatorError.foundDuplicate(assetName: oldMember.name))
+                errors.all.append(AssetsValidatorError.foundDuplicate(assetName: oldMember.name))
             }
         }
 
@@ -212,8 +210,7 @@ public extension AssetsProcessable {
             case (true, _):
                 break // ok
             case (false, let oldMember): // already exists
-                return
-//                errors.all.append(AssetsValidatorError.foundDuplicate(assetName: oldMember.name))
+                errors.all.append(AssetsValidatorError.foundDuplicate(assetName: oldMember.name))
             }
         }
 
@@ -223,8 +220,7 @@ public extension AssetsProcessable {
             case (true, _):
                 break // ok
             case (false, let oldMember): // already exists
-                return
-//                errors.all.append(AssetsValidatorError.foundDuplicate(assetName: oldMember.name))
+                errors.all.append(AssetsValidatorError.foundDuplicate(assetName: oldMember.name))
             }
         }
 
@@ -323,9 +319,10 @@ public extension AssetsProcessable {
             let split = asset.name.split(separator: "/")
             if split.count == 2, split[0] == split[1] {
                 renamedAsset.name = String(split[0])
-            } else if asset is Color, split.count == 2 {
-                renamedAsset.name = String(split[1])
-            } else {
+//            } else if asset is Color, split.count == 2 {
+//                renamedAsset.name = String(split[1])
+            }
+            else {
                 renamedAsset.name = renamedAsset.name.replacingOccurrences(of: "/", with: "_")
             }
             return renamedAsset
