@@ -30,7 +30,7 @@ public struct TokenValue: Decodable {
     }
 }
 
-public enum StringOrNumber {
+public enum StringOrNumber: Encodable {
     case string(String)
     case number(Double)
 
