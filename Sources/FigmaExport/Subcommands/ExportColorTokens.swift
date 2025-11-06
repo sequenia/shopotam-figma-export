@@ -307,7 +307,7 @@ extension StateRest {
 extension RolesLight {
     func convertToColors() -> [Color] {
         var colors: [Color] = []
-        extractColors(from: self, prefix: "rolesLight", to: &colors)
+        extractColors(from: self, prefix: "", to: &colors)
         return colors
     }
 
@@ -317,7 +317,11 @@ extension RolesLight {
         for child in mirror.children {
             guard let propertyName = child.label else { continue }
 
-            let newPrefix = "\(prefix)\(propertyName.prefix(1).uppercased() + propertyName.dropFirst())"
+            let propertyNameComponent = prefix == ""
+                ? propertyName.prefix(1).lowercased()
+                : propertyName.prefix(1).uppercased()
+
+            let newPrefix = "\(prefix)\(propertyNameComponent + propertyName.dropFirst())"
 
             switch child.value {
             case let tokenData as TokenData:
